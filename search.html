@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, height=device-height, initial-scale=1.0, minimum-scale=1, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Azure search</title>
+    <link
+      href="http://fonts.googleapis.com/css?family=Roboto"
+      rel="stylesheet"
+      type="text/css"
+    />
+    <link rel="stylesheet" type="text/css" href="styles.css" />
+    <script src="engine.js"></script>
+    <script src="content.js"></script>
+  </head>
+  <body>
+    <table>
+      <tr>
+        <td style="position: relative;">
+          <input type="text" id="autocomplete" />
+          <input
+            type="text"
+            id="userinput"
+            placeholder="Type a word to search content..."
+          />
+        </td>
+      </tr>
+    </table>
+    <div id="suggestions"></div>
+    <script>
+      (function () {
+        var index = new FlexSearch({
+          encode: "advanced",
+          tokenize: "reverse",
+          suggest: true,
+          cache: true,
+        });
+
+        // create index
+        for (var i = 0; i < data.length; i++) {
+          index.add(i, data[i].w);
+        }
+
+        var suggestions = document.getElementById("suggestions");
+        var autocomplete = document.getElementById("autocomplete");
+        var userinput = document.getElementById("userinput");
+
+        userinput.addEventListener("input", show_results, true);
+
+        function show_results() {
+          var value = this.value;
+          var results = index.search(value, 25);
+          var entry,
+            childs = suggestions.childNodes;
+          var i = 0,
+            len = results.length;
+
+          for (; i < len; i++) {
+            entry = childs[i];
+
+            if (!entry) {
+              entry = document.createElement("div");
+              suggestions.appendChild(entry);
+            }
+
+            entry.innerHTML =
+              data[results[i]].w +
+              "<br><a target='_blank' href='" +
+              data[results[i]].url +
+              "'>" +
+              data[results[i]].url +
+              "</a>";
+          }
+
+          while (childs.length > len) {
+            suggestions.removeChild(childs[i]);
+          }
+
+          var first_result = results.length ? data[results[0]].w : null;
+          var match =
+            first_result &&
+            first_result.toLowerCase().indexOf(value.toLowerCase());
+
+          if (first_result && match !== -1) {
+            autocomplete.value =
+              value + first_result.substring(match + value.length);
+            autocomplete.current = first_result;
+          } else {
+            autocomplete.value = autocomplete.current = value;
+          }
+        }
+      })();
+      document.getElementById("userinput").focus();
+    </script>
+  </body>
+</html>
